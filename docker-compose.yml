@@ -1,0 +1,8 @@
+version: "3.8"
+
+services:
+  scrapper:
+    container_name: scrapper
+    build: ./scrapper
+    volumes:
+      - ./scrapper/src:/usr/src
