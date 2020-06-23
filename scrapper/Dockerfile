@@ -1,8 +1,13 @@
 FROM python:3.8
 
-ENV dir /usr/src
+ENV root /usr
+ENV src /usr/src
 
-COPY src $dir
-WORKDIR $dir
+COPY requirements.txt $root
+COPY src $src
 
-ENTRYPOINT ["tail", "-f", "/dev/null"]
+WORKDIR $src
+
+RUN pip install -r $root/requirements.txt
+
+CMD tail -f /dev/null

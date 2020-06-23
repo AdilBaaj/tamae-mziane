@@ -6,3 +6,15 @@ services:
     build: ./scrapper
     volumes:
       - ./scrapper/src:/usr/src
+    links:
+      - database
+  database:
+    container_name: database
+    image: postgres:12
+    restart: always
+    environment:
+      POSTGRES_USER: tamane
+      POSTGRES_PASSWORD: mziane
+      POSTGRES_DB: cars
+    ports:
+      - 5435:5432
