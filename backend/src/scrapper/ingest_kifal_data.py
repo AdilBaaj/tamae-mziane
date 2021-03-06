@@ -8,6 +8,7 @@ from datetime import datetime
 def get_kifal_page_url(page):
     return f'https://operations-kifal.com/api/website/listed-cars/?p={page}&sort=newest'
 
+
 headers = {
     "Content-Type": "application/json"
 }
@@ -15,7 +16,7 @@ headers = {
 r = requests.get(get_kifal_page_url(1), headers=headers, verify=False)
 
 data = r.json()['data']
-page_count = r.json()['pageCount']
+page_count = r.json()['nbPages']
 
 for i in range(2, page_count):
     r = requests.get(get_kifal_page_url(i), headers=headers, verify=False)
