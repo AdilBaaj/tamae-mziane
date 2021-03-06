@@ -1,13 +1,22 @@
 version: "3.8"
 
 services:
-  scrapper:
-    container_name: scrapper
-    build: ./scrapper
+  backend:
+    container_name: backend
+    build: backend
     volumes:
-      - ./scrapper/src:/usr/src
+      - ./backend/src:/usr/src
     links:
       - database
+    ports:
+      - 5000:5000
+    environment:
+      APP_SETTINGS: tamane
+      POSTGRES_PASSWORD: mziane
+      POSTGRES_DB: cars
+      DATABASE_URL: postgresql+psycopg2://tamane:mziane@database:5432/cars
+    networks:
+      some_network:
   database:
     container_name: database
     image: postgres:12
@@ -18,3 +27,7 @@ services:
       POSTGRES_DB: cars
     ports:
       - 5435:5432
+    networks:
+      some_network:
+networks:
+ some_network:
