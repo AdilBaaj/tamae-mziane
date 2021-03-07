@@ -1,8 +1,14 @@
 import requests
 from backend.src.db.enum_classes import Transmission, Fuel, Origin
-from backend.src.db.table import car_data as car_table
-from backend.src.db import engine
+from backend.src.db import engine, car_data as car_table
 from datetime import datetime
+import pandas as pd
+import urllib3
+import traceback
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+print('Start ingesting Kifal data')
 
 
 def get_kifal_page_url(page):
@@ -45,36 +51,54 @@ def format_fuel(fuel):
 
 
 for e in data:
-    ref = e['ref']
-    url = f'https://operations-kifal.com/api/website/car-details/?id={ref}'
-    r = requests.get(url, headers=headers, verify=False)
-    car_data = r.json()
-    output['kifal'].append({
-        'price': car_data['prix'],
-        'brand': car_data['marque'],
-        'model': car_data['modele'],
-        'transmission': format_transmission(car_data['transmission']),
-        'fuel': format_fuel(car_data['carburant']),
-        'carrosserie': car_data['carrosserie'],
-        'finish': car_data['finition'],
-        'mileage': car_data['kilometrage'],
-        'tax_rating': car_data['puissanceFiscale'],
-        'horse_power': car_data['chevaux'],
-        'city': car_data['ville'],
-        'origin': format_origin(car_data['origine']),
-        'date_on_the_road': car_data['dateMiseEnCirculation'],
-        'year': car_data['annee'],
-        'vignette_price': car_data['prixVignette'],
-        'url': f'https://annonces.kifal-auto.ma/annonce/{ref}',
-        'source': source,
-        'scrapping_date': datetime.now()
-    })
+    try:
+        ref = e['ref']
+        print(ref)
+        url = f'https://operations-kifal.com/api/website/car-details/?id={ref}'
+        r = requests.get(url, headers=headers, verify=False, timeout=5)
+        car_data = r.json()
+        output['kifal'].append({
+            'id': ref,
+            'price': car_data['prix'],
+            'brand': car_data['marque'],
+            'model': car_data['modele'],
+            'transmission': format_transmission(car_data['transmission']),
+            'fuel': format_fuel(car_data['carburant']),
+            'carrosserie': car_data['carrosserie'],
+            'finish': car_data['finition'],
+            'mileage': car_data['kilometrage'],
+            'tax_rating': car_data['puissanceFiscale'],
+            'horse_power': car_data['chevaux'],
+            'city': car_data['ville'],
+            'origin': format_origin(car_data['origine']),
+            'date_on_the_road': car_data['dateMiseEnCirculation'],
+            'year': car_data['annee'],
+            'vignette_price': car_data['prixVignette'],
+            'url': f'https://annonces.kifal-auto.ma/annonce/{ref}',
+            'source': source,
+            'scrapping_date': datetime.now()
+        })
+    except requests.exceptions.RequestException:
+        traceback.print_exc()
+        continue
+    except:
+        continue
 
 if __name__ == '__main__':
-    print(output['kifal'])
+    new_data = pd.DataFrame.from_records(output['kifal'])
 
-    # Delete previous Kifal data
-    engine.execute(car_table.delete().where(car_table.c.source == 'kifal'))
+    try:
+        old_data = pd.read_sql(car_table.select().where(car_table.c.source == 'kifal'), engine)
+        all_data = pd.concat([old_data, new_data])
+    # TODO: narrow exception -> In case table does not exist
+    except:
+        traceback.print_exc()
+        all_data = new_data
 
-    # Update Kifal Data
-    engine.execute(car_table.insert(), output['kifal'])
+    all_data = all_data.drop_duplicates(subset=['id'])
+    all_data['transmission'] = all_data['transmission'].apply(lambda x: x.name)
+    all_data['fuel'] = all_data['fuel'].apply(lambda x: x.name)
+    all_data['origin'] = all_data['origin'].apply(lambda x: x.name)
+    all_data.to_sql('car_data', engine, if_exists='replace', index=False)
+
+    print('Successfully ingested Kifal data')

@@ -7,7 +7,7 @@ metadata = MetaData()
 car_data = Table(
     'car_data',
     metadata,
-    Column('id', Integer, primary_key=True, autoincrement=True),
+    Column('id', String, primary_key=True),
     Column('price', Integer, nullable=False),
     Column('brand', String, nullable=False),
     Column('model', String, nullable=False),
