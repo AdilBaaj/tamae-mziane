@@ -9,6 +9,7 @@ class Transmission(enum.Enum):
 class Fuel(enum.Enum):
     diesel = 1
     essence = 2
+    hybrid = 3
 
 
 class Origin(enum.Enum):

@@ -1,10 +1,11 @@
 import requests
 from backend.src.db.enum_classes import Transmission, Fuel, Origin
-from backend.src.db import engine, car_data as car_table
+from backend.src.scrapper.utils import save_new_data
 from datetime import datetime
 import pandas as pd
 import urllib3
 import traceback
+
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -34,20 +35,20 @@ output = {source: []}
 
 def format_transmission(transmission):
     if transmission == 'Automatique':
-        return Transmission.automatic
-    return Transmission.manual
+        return Transmission.automatic.name
+    return Transmission.manual.name
 
 
 def format_origin(origin):
     if origin == 'WW maroc':
-        return Origin.morocco
-    return Origin.abroad
+        return Origin.morocco.name
+    return Origin.abroad.name
 
 
 def format_fuel(fuel):
     if fuel == 'Diesel':
-        return Fuel.diesel
-    return Fuel.essence
+        return Fuel.diesel.name
+    return Fuel.essence.name
 
 
 for e in data:
@@ -86,19 +87,6 @@ for e in data:
 
 if __name__ == '__main__':
     new_data = pd.DataFrame.from_records(output['kifal'])
-
-    try:
-        old_data = pd.read_sql(car_table.select().where(car_table.c.source == 'kifal'), engine)
-        old_data['transmission'] = old_data['transmission'].apply(lambda x: x.name)
-        old_data['fuel'] = old_data['fuel'].apply(lambda x: x.name)
-        old_data['origin'] = old_data['origin'].apply(lambda x: x.name)
-        all_data = pd.concat([old_data, new_data])
-    # TODO: narrow exception -> In case table does not exist
-    except:
-        traceback.print_exc()
-        all_data = new_data
-
-    all_data = all_data.drop_duplicates(subset=['id'])
-    all_data.to_sql('car_data', engine, if_exists='append', index=False)
+    save_new_data(new_data, 'kifal')
 
     print('Successfully ingested Kifal data')
