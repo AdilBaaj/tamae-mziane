@@ -89,6 +89,9 @@ if __name__ == '__main__':
 
     try:
         old_data = pd.read_sql(car_table.select().where(car_table.c.source == 'kifal'), engine)
+        old_data['transmission'] = old_data['transmission'].apply(lambda x: x.name)
+        old_data['fuel'] = old_data['fuel'].apply(lambda x: x.name)
+        old_data['origin'] = old_data['origin'].apply(lambda x: x.name)
         all_data = pd.concat([old_data, new_data])
     # TODO: narrow exception -> In case table does not exist
     except:
@@ -96,9 +99,6 @@ if __name__ == '__main__':
         all_data = new_data
 
     all_data = all_data.drop_duplicates(subset=['id'])
-    all_data['transmission'] = all_data['transmission'].apply(lambda x: x.name)
-    all_data['fuel'] = all_data['fuel'].apply(lambda x: x.name)
-    all_data['origin'] = all_data['origin'].apply(lambda x: x.name)
-    all_data.to_sql('car_data', engine, if_exists='replace', index=False)
+    all_data.to_sql('car_data', engine, if_exists='append', index=False)
 
     print('Successfully ingested Kifal data')

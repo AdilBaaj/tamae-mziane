@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 import re
 from datetime import datetime
 import pandas as pd
-from backend.src.db import engine
+from backend.src.db import engine, car_data as car_table
 import traceback
 
 
@@ -65,9 +65,9 @@ def process_car_element(car_element):
         'mileage': int(car_details.get('mileage', 0)),
         'year': int(car_details.get('year', 0)),
         'tax_rating': int(car_details.get('tax_rating', 0)),
-        'fuel': car_details.get('fuel').lower()
+        'fuel': car_details.get('fuel').lower(),
+        'transmission': 'automatic' if car_details.get('transmission') == 'Automatique' else 'manual',
     }
-    car_data = {**car_details, **car_data}
     return car_data
 
 
@@ -83,4 +83,13 @@ if __name__ == '__main__':
             print(f'Error with element %{e.href}')
             continue
     new_data_df = pd.DataFrame.from_records(new_data)
-    new_data_df.to_sql('car_data', engine, if_exists='replace', index=False)
+    old_data_df = pd.read_sql(car_table.select().where(car_table.c.source == 'moteur.ma'), engine)
+    old_data_df['transmission'] = old_data_df['transmission'].apply(lambda x: x.name)
+    old_data_df['fuel'] = old_data_df['fuel'].apply(lambda x: x.name)
+    old_data_df['origin'] = old_data_df['origin'].apply(lambda x: (None if x is None else True) and x.name)
+
+    all_data = pd.concat([old_data_df, new_data_df])
+    all_data = all_data.drop_duplicates(subset=['id'])
+
+    all_data.to_sql('car_data', engine, if_exists='append', index=False)
+
