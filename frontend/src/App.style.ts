@@ -1,0 +1,10 @@
+import styled from 'styled-components'
+
+export const Button = styled.button`
+  width: 100px;
+`
+
+export const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+`

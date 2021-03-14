@@ -88,5 +88,4 @@ for e in data:
 if __name__ == '__main__':
     new_data = pd.DataFrame.from_records(output['kifal'])
     save_new_data(new_data, 'kifal')
-
     print('Successfully ingested Kifal data')

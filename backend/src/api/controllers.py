@@ -17,6 +17,7 @@ class CarsData(Resource):
         model = args.get('model')
         session = Session()
         query = session.query(car_table).filter_by(brand=brand)
+        session.close()
         if model:
             query = query.filter_by(model=model)
         data = query.all()
@@ -28,7 +29,31 @@ class CarsData(Resource):
         return df.to_dict('records')
 
 
-api.add_resource(CarsData, '/')
+class Brands(Resource):
+    def get(self):
+        session = Session()
+        brands = session.query(car_table.c.brand).distinct(car_table.c.brand).all()
+        session.close()
+        return [b[0] for b in brands]
+
+
+class Models(Resource):
+    def get(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('brand')
+        args = parser.parse_args()
+        brand = args.get('brand')
+        if not brand:
+            return 'Specify a brand', 400
+        session = Session()
+        models = session.query(car_table.c.model).distinct(car_table.c.model).filter(car_table.c.brand == brand).all()
+        session.close()
+        return [m[0] for m in models]
+
+
+api.add_resource(CarsData, '/api/car-data')
+api.add_resource(Brands, '/api/brands')
+api.add_resource(Models, '/api/models')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

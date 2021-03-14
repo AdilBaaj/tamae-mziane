@@ -6,7 +6,7 @@ import re
 from datetime import datetime
 import pandas as pd
 import traceback
-from backend.src.scrapper.utils import save_new_data
+from backend.src.scrapper.utils import save_data
 from backend.src.db.enum_classes import Origin
 
 
@@ -73,29 +73,46 @@ def process_car_element(car_element):
     return car_data
 
 
+def get_soup_page(page):
+    n = 15 * page
+    URL = 'https://www.moteur.ma/fr/voiture/achat-voiture-occasion/recherche/?prix_min=10000&&per_page={page}'.format(page=n)
+    page = requests.get(URL, verify=False, timeout=10)
+    return BeautifulSoup(page.content, 'html.parser')
+
+
 if __name__ == '__main__':
     print("Ingesting moteur.ma")
-    URL = 'https://www.moteur.ma/fr/voiture/achat-voiture-occasion/recherche/?prix_min=10000'
-    page = requests.get(URL, verify=False, timeout=5)
-    soup = BeautifulSoup(page.content, 'html.parser')
+    soup = get_soup_page(0)
 
     # TODO: scrap all pages
-    number_pages = soup.find('span', class_='pull-right').contents[3].contents[0]
-    car_pictures_soup = soup.find_all(
-        attrs={'class': 'picture_show', 'style': 'height:100% !important;line-height:0!important;'})
-    car_elements = [e.contents[1] for e in car_pictures_soup]
-    new_data = []
-    for e in car_elements:
+    number_pages = int(soup.find('span', class_='pull-right').contents[3].contents[0])
+
+    for page in range(230, number_pages):
+        print(f'Getting moteur.ma page {page}')
+        car_elements = []
+        new_data = []
         try:
-            car_data = process_car_element(e)
-            new_data.append(car_data)
+            soup = get_soup_page(page)
+            car_pictures_soup = soup.find_all(
+                attrs={'class': 'picture_show', 'style': 'height:100% !important;'})
+            car_elements = car_elements + [e.contents[1] for e in car_pictures_soup]
+            print(f'Processing moteur.ma data')
+            for e in car_elements:
+                try:
+                    car_data = process_car_element(e)
+                    new_data.append(car_data)
+                except:
+                    traceback.print_exc()
+                    print(f'Error with element %{e.href}')
+                    continue
+
             new_data_df = pd.DataFrame.from_records(new_data)
-            save_new_data(new_data_df, 'moteur.ma')
-            print('Successfully ingested moteur.ma')
+            save_data(new_data_df)
         except requests.exceptions.RequestException:
             traceback.print_exc()
             continue
         except:
             traceback.print_exc()
-            print(f'Error with element %{e.href}')
             continue
+
+    print('Successfully ingested moteur.ma')

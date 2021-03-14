@@ -3,7 +3,20 @@ from backend.src.db import car_data as car_table, engine
 import traceback
 
 
-def save_new_data(new_data, source):
+def save_data(data_to_save, should_delete_previous_data=False):
+    with engine.connect() as connection:
+        transaction = connection.begin()
+        try:
+            if should_delete_previous_data:
+                connection.execute(car_table.delete())
+            data_to_save.to_sql('car_data', connection, if_exists='append', index=False)
+            transaction.commit()
+        except:
+            traceback.print_exc()
+            transaction.rollback()
+
+
+def save_new_data_without_duplicates(new_data, source):
     source_old_data = pd.read_sql(car_table.select().where(car_table.c.source == source), engine)
     other_source_old_data = pd.read_sql(car_table.select().where(car_table.c.source != source), engine)
     old_data = pd.concat([source_old_data, other_source_old_data])
@@ -13,13 +26,4 @@ def save_new_data(new_data, source):
 
     all_data = pd.concat([old_data, new_data])
     all_data = all_data.drop_duplicates(subset=['id'])
-
-    with engine.connect() as connection:
-        transaction = connection.begin()
-        try:
-            connection.execute(car_table.delete())
-            all_data.to_sql('car_data', connection, if_exists='append', index=False)
-            transaction.commit()
-        except:
-            traceback.print_exc()
-            transaction.rollback()
+    save_data(all_data)
