@@ -51,9 +51,29 @@ class Models(Resource):
         return [m[0] for m in models]
 
 
+class Stats(Resource):
+    def get(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('brand')
+        parser.add_argument('model')
+        args = parser.parse_args()
+        brand = args.get('brand')
+        model = args.get('model')
+        if not brand or not model:
+            return 'Specify a brand and a model', 400
+        session = Session()
+        data = session.query(car_table).filter_by(brand=brand).filter_by(model=model).all()
+        session.close()
+        if data:
+            df = pd.DataFrame(data)
+            stats_df = df[['price', 'year']].groupby('year').price.agg(['mean', 'min', 'max'])
+            return stats_df.to_dict('index')
+        return {}
+
 api.add_resource(CarsData, '/api/car-data')
 api.add_resource(Brands, '/api/brands')
 api.add_resource(Models, '/api/models')
+api.add_resource(Stats, '/api/stats')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
