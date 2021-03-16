@@ -70,6 +70,7 @@ class Stats(Resource):
             return stats_df.to_dict('index')
         return {}
 
+
 api.add_resource(CarsData, '/api/car-data')
 api.add_resource(Brands, '/api/brands')
 api.add_resource(Models, '/api/models')
