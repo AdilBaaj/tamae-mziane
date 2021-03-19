@@ -1,4 +1,4 @@
-from backend.src.db import Session, car_data as car_table
+from src.db import Session, car_data as car_table
 from flask import Flask
 from flask_restful import Resource, Api, reqparse
 import pandas as pd

@@ -1,5 +1,5 @@
 import pandas as pd
-from backend.src.db import car_data as car_table, engine
+from src.db import car_data as car_table, engine
 import traceback
 
 

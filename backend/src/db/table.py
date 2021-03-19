@@ -1,6 +1,6 @@
 from sqlalchemy import *
-from backend.src.db.enum_classes import Transmission, Fuel, Origin
-from backend.src.db import engine
+from src.db.enum_classes import Transmission, Fuel, Origin
+from src.db import engine
 
 metadata = MetaData()
 

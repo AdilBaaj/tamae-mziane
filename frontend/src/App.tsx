@@ -1,11 +1,14 @@
 import React, {ChangeEvent, useState} from 'react';
 import '../node_modules/react-vis/dist/style.css';
-import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer} from 'recharts';
-import {Button, Container} from './App.style';
+import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend} from 'recharts';
+import {Container, FilterBar} from './App.style';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
+import Button from '@material-ui/core/Button';
+import FormControl from "@material-ui/core/FormControl";
 import {useAsync, useAsyncFn} from 'react-use';
 import nanoid from 'nanoid';
+import {InputLabel} from "@material-ui/core";
 
 const fetchBrandsHook = async (): Promise<string[]> =>
     (await fetch(`/api/brands`)).json();
@@ -46,22 +49,32 @@ function App() {
 
     return (
         <Container>
-            <Select placeholder="Brand" value={brand} onChange={handleSelectBrand}>
-                {
-                    brands.value ? brands.value.map((brand: string) => <MenuItem value={brand}
-                                                                                 key={nanoid()}> {brand} </MenuItem>) : null
-                }
-            </Select>
-            <Select placeholder="Model" value={model} onChange={handleSelectModel}>
-                {
-                    models.value ? models.value.map((model: string) => <MenuItem value={model}
-                                                                                 key={nanoid()}> {model} </MenuItem>) : null
-                }
-            </Select>
+            <FilterBar>
+                <FormControl>
+                    <InputLabel id="brand">Marque</InputLabel>
+                    <Select labelId="brand" value={brand} onChange={handleSelectBrand}>
+                        {
+                            brands.value ? brands.value.map((brand: string) => <MenuItem value={brand}
+                                                                                         key={nanoid()}> {brand} </MenuItem>) : null
+                        }
+                    </Select>
+                </FormControl>
 
-            <Button onClick={handleClick}>
-                Recherche
-            </Button>
+                <FormControl>
+                    <InputLabel id="model">Modèle</InputLabel>
+                    <Select labelId="model" value={model} onChange={handleSelectModel}>
+                        {
+                            models.value ? models.value.map((model: string) => <MenuItem value={model}
+                                                                                         key={nanoid()}> {model} </MenuItem>) : null
+                        }
+                    </Select>
+                </FormControl>
+
+                <Button onClick={handleClick}>
+                    Recherche
+                </Button>
+            </FilterBar>
+
             {
                 data.length > 0 &&
                 <LineChart

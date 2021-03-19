@@ -16,7 +16,7 @@ services:
       POSTGRES_DB: cars
       DATABASE_URL: postgresql+psycopg2://tamane:mziane@database:5432/cars
     networks:
-      some_network:
+      db_network:
   database:
     container_name: database
     image: postgres:12
@@ -28,6 +28,6 @@ services:
     ports:
       - 5435:5432
     networks:
-      some_network:
+      db_network:
 networks:
- some_network:
+ db_network:

@@ -6,8 +6,8 @@ import re
 from datetime import datetime
 import pandas as pd
 import traceback
-from backend.src.scrapper.utils import save_data
-from backend.src.db.enum_classes import Origin
+from src.scrapper.utils import save_data
+from src.db.enum_classes import Origin
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
