@@ -10,4 +10,4 @@ WORKDIR $src
 
 RUN pip install -r $root/requirements.txt
 
-CMD tail -f /dev/null
+CMD PYTHONPATH=/usr python /usr/src/api/controllers.py
