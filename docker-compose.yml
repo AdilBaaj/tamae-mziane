@@ -1,6 +1,16 @@
 version: "3.8"
 
 services:
+  frontend:
+    container_name: frontend
+    build: frontend
+    networks:
+      - frontend
+    ports:
+      - 80:80
+    volumes:
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/nginx.conf
+
   backend:
     container_name: backend
     build: backend
@@ -16,7 +26,9 @@ services:
       POSTGRES_DB: cars
       DATABASE_URL: postgresql+psycopg2://tamane:mziane@database:5432/cars
     networks:
-      db_network:
+      - db_network
+      - frontend
+
   database:
     container_name: database
     image: postgres:12
@@ -29,5 +41,7 @@ services:
       - 5435:5432
     networks:
       db_network:
+
 networks:
  db_network:
+ frontend:
