@@ -1,5 +1,4 @@
 import React, {ChangeEvent, useState} from 'react';
-import '../node_modules/react-vis/dist/style.css';
 import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend} from 'recharts';
 import {Container, FilterBar} from './App.style';
 import Select from '@material-ui/core/Select';
