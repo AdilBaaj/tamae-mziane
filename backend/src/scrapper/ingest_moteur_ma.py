@@ -6,7 +6,7 @@ import re
 from datetime import datetime
 import pandas as pd
 import traceback
-from src.scrapper.utils import save_data
+from src.scrapper.moteur_ma_utils import save_data
 from src.db.enum_classes import Origin
 
 

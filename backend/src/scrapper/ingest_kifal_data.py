@@ -1,6 +1,6 @@
 import requests
 from src.db.enum_classes import Transmission, Fuel, Origin
-from src.scrapper.utils import save_new_data
+from src.scrapper.moteur_ma_utils import save_new_data
 from datetime import datetime
 import pandas as pd
 import urllib3
