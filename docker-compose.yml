@@ -39,9 +39,14 @@ services:
       POSTGRES_DB: cars
     ports:
       - 5435:5432
+    volumes:
+    - db_volume:/var/lib/postgresql
     networks:
       db_network:
 
 networks:
  db_network:
  frontend:
+
+volumes:
+  db_volume:
