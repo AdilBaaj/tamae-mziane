@@ -1,18 +1,21 @@
 import requests
 from bs4 import BeautifulSoup
 import urllib3
-from urllib.parse import urlparse
 import re
 from datetime import datetime
 import pandas as pd
 import traceback
-from src.scrapper.moteur_ma_utils import save_data
-from src.db.enum_classes import Origin
+from src.scrapper.moteur_ma_utils import save_new_data_without_duplicates
+from src.db.enum_classes import Origin, Transmission, Fuel
 import json
 from src.scrapper.avito_mapping import brand_mapping
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+transmission_mapper = {
+    'Manuelle': Transmission.manual.name,
+    'Automatique': Transmission.automatic.name
+}
 
 fuel_mapper = {
     'Diesel': 'diesel',
@@ -42,14 +45,38 @@ def process_car_element(href):
     details = params['primary'] + params['secondary']
 
     price = other_details[params_key]['price']['value']
-    mileage = int(find_value_by_key('mileage', details).split('-')[1][1:].replace(' ', ''))
     year = int(find_value_by_key('regdate', details))
     brand = brand_mapping[find_value_by_key('brand', details)]
     model = find_value_by_key('model', details).upper()
-    origin = process_origin(find_value_by_key('v_origin', details))
-    fuel = fuel_mapper[find_value_by_key('fuel', details)]
-    tax_rating = int(find_value_by_key('pfiscale', details).split(' ')[0])
-    transmission = find_value_by_key('bv', details)
+
+    try:
+        origin = process_origin(find_value_by_key('v_origin', details))
+    except:
+        print('Error on origin')
+        origin = Origin.morocco.name
+
+    try:
+        fuel = fuel_mapper[find_value_by_key('fuel', details)]
+    except:
+        fuel = Fuel.diesel.name
+
+    try:
+        tax_rating = int(find_value_by_key('pfiscale', details).split(' ')[0])
+    except:
+        print('Error on tax rating')
+        tax_rating = 0
+
+    try:
+        mileage = int(find_value_by_key('mileage', details).split('-')[1][1:].replace(' ', ''))
+    except:
+        print('Error on mileage')
+        mileage = 0
+
+    try:
+        transmission = transmission_mapper[find_value_by_key('bv', details)]
+    except:
+        print('Error on transmission')
+        transmission = Transmission.manual.name
 
     car_data = {
         'id': href.split('/')[-1].split('.')[0].split('_')[-1],
@@ -92,7 +119,7 @@ if __name__ == '__main__':
             soup = get_soup_page(page)
             car_elements = soup.select('div[data-testid^=adListCard]')
             hrefs = [e.contents[0]['href'] for e in car_elements]
-            print(f'Processing moteur.ma data')
+            print(f'Processing avito.ma data')
             for href in hrefs:
                 try:
                     car_data = process_car_element(href)
@@ -103,7 +130,7 @@ if __name__ == '__main__':
                     continue
 
             new_data_df = pd.DataFrame.from_records(new_data)
-            save_data(new_data_df)
+            save_new_data_without_duplicates(new_data_df, 'avito.ma')
         except requests.exceptions.RequestException:
             traceback.print_exc()
             continue
@@ -111,4 +138,4 @@ if __name__ == '__main__':
             traceback.print_exc()
             continue
 
-    print('Successfully ingested moteur.ma')
+    print('Successfully ingested avito.ma')

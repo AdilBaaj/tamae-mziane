@@ -26,4 +26,4 @@ def save_new_data_without_duplicates(new_data, source):
 
     all_data = pd.concat([old_data, new_data])
     all_data = all_data.drop_duplicates(subset=['id'])
-    save_data(all_data)
+    save_data(all_data, True)
