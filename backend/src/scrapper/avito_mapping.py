@@ -1,4 +1,5 @@
 brand_mapping = {
+    'Dacia': 'DACIA',
     'Hafei': 'HAFEI',
     'Opel': 'OPEL',
     'Lifan': 'LIFAN',
@@ -7,6 +8,7 @@ brand_mapping = {
     'Simca': 'SIMCA',
     'Dodge': 'DODGE',
     'Mercedes': 'MERCEDES',
+    'Mercedes-Benz': 'MERCEDES',
     'Ford': 'FORD',
     'Chrysler': 'CHRYSLER',
     'Nissan': 'NISSAN',

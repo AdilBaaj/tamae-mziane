@@ -53,7 +53,7 @@ def process_car_element(car_element):
         'id': ref,
         'price': price,
         'brand': brand,
-        'model': model,
+        'model': model.upper(),
         'carrosserie': None,
         'finish': None,
         'horse_power': None,

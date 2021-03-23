@@ -9,55 +9,50 @@ import traceback
 from src.scrapper.moteur_ma_utils import save_data
 from src.db.enum_classes import Origin
 import json
+from src.scrapper.avito_mapping import brand_mapping
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-mapper = {
-    'Kilométrage': 'mileage',
-    'Année-Modèle': 'year',
-    'Boite de vitesses': 'transmission',
-    'Carburant': 'fuel',
-    'Puissance fiscale': 'tax_rating',
-    'Marque': 'brand',
-    'Modèle': 'model',
-    'Origine': 'origin',
-}
 
 fuel_mapper = {
-    'diesel': 'diesel',
-    'hybride': 'hybrid',
-    'essence': 'essence'
+    'Diesel': 'diesel',
+    'Hybride': 'hybrid',
+    'Essence': 'essence'
 }
 
 
 def find_value_by_key(key, params):
-    matches_key = lambda d: d.get('key') == key
-    d = next(filter(matches_key, params), {})
-    return d.get('value')
+    param = next(filter(lambda e: e.get('key') == key, params), {})
+    return param.get('value')
+
+
+def process_origin(origin):
+    if origin and origin != 'WW au Maroc':
+        return Origin.abroad.name
+    return Origin.morocco.name
 
 
 def process_car_element(href):
     print(href)
     page = requests.get(href, verify=False, timeout=5)
     car_soup = BeautifulSoup(page.content, 'html.parser')
-    car_details = {}
     other_details = json.loads(car_soup.find_all(text=re.compile(r'Type'))[1])['props']['pageProps']['apolloState']
     params_key = [value for value in other_details.keys() if 'Ad' in value][0]
     params = other_details[params_key]['params']
     details = params['primary'] + params['secondary']
 
     price = other_details[params_key]['price']['value']
-    mileage = find_value_by_key('mileage', details)
-    year = find_value_by_key('regdate', details)
-    brand = find_value_by_key('brand', details)
-    model = find_value_by_key('model', details)
-    origin = find_value_by_key('v_origin', details)
-    fuel = find_value_by_key('fuel', details)
-    tax_rating = find_value_by_key('pfiscale', details)
+    mileage = int(find_value_by_key('mileage', details).split('-')[1][1:].replace(' ', ''))
+    year = int(find_value_by_key('regdate', details))
+    brand = brand_mapping[find_value_by_key('brand', details)]
+    model = find_value_by_key('model', details).upper()
+    origin = process_origin(find_value_by_key('v_origin', details))
+    fuel = fuel_mapper[find_value_by_key('fuel', details)]
+    tax_rating = int(find_value_by_key('pfiscale', details).split(' ')[0])
     transmission = find_value_by_key('bv', details)
 
     car_data = {
-        'id': 'TOTO',
+        'id': href.split('/')[-1].split('.')[0].split('_')[-1],
         'price': price,
         'brand': brand,
         'model': model,
@@ -104,7 +99,7 @@ if __name__ == '__main__':
                     new_data.append(car_data)
                 except:
                     traceback.print_exc()
-                    print(f'Error with element %{e.href}')
+                    print(f'Error with element %{href}')
                     continue
 
             new_data_df = pd.DataFrame.from_records(new_data)
