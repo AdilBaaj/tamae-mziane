@@ -27,7 +27,7 @@ brand_mapping = {
     'Audi': 'AUDI',
     'Chevrolet': 'CHEVROLET',
     'Zotye': 'ZOTYE',
-    'Porshe': 'PORSCHE',
+    'Porsche': 'PORSCHE',
     'Alfa Romeo': 'ALFA-ROMEO',
     'Renault': 'RENAULT',
     'Peugeot': 'PEUGEOT',
