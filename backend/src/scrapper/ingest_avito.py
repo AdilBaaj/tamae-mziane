@@ -111,7 +111,7 @@ def get_soup_page(page):
 if __name__ == '__main__':
     print("Ingesting avito.ma")
 
-    for page in range(1500):
+    for page in range(1, 1500):
         print(f'Getting avito.ma page {page}')
         car_elements = []
         new_data = []
