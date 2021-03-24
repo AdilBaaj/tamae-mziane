@@ -79,7 +79,7 @@ def process_car_element(href):
         transmission = Transmission.manual.name
 
     car_data = {
-        'id': href.split('/')[-1].split('.')[0].split('_')[-1],
+        'id': href.split('/')[-1],
         'price': price,
         'brand': brand,
         'model': model,
