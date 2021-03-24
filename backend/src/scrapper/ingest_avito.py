@@ -103,7 +103,7 @@ def process_car_element(href):
 
 
 def get_soup_page(page):
-    URL = 'https://www.avito.ma/fr/maroc/voitures-%C3%A0_vendre?spr=50000&rs=26&re=41&o=${page}'.format(page=page)
+    URL = 'https://www.avito.ma/fr/maroc/voitures-%C3%A0_vendre?spr=50000&o={page}&rs=26&re=41'.format(page=page)
     page = requests.get(URL, verify=False, timeout=10)
     return BeautifulSoup(page.content, 'html.parser')
 
